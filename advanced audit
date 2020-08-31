@@ -113,3 +113,7 @@ rules:
    master-restart controllers
 
 4) https://docs.openshift.com/container-platform/3.11/install_config/aggregate_logging.html#aggregated-fluentd
+   https://austindewey.com/2018/10/17/integrating-advanced-audit-with-aggregated-logging-in-openshift-3-11/
+   https://docs.openshift.com/container-platform/3.11/install_config/master_node_configuration.html#master-node-config-audit-config
+   https://github.com/openshift/origin-aggregated-logging/issues/1226
+   
