@@ -1,0 +1,115 @@
+1) vi /etc/origin/master/master-config.yaml
+
+auditConfig:
+  auditFilePath: "/var/lib/origin/openpaas-oscp-audit/openpaas-oscp-audit.log"
+  enabled: true
+  maximumFileRetentionDays: 10
+  maximumFileSizeMegabytes: 100
+  maximumRetainedFiles: 3
+  policyFile: "/etc/origin/master/audit-policy.yaml"
+  logFormat: json
+2) vi /etc/origin/master/audit-policy.yaml
+   
+========================================================================
+apiVersion: audit.k8s.io/v1beta1
+kind: Policy
+rules:
+  # Do not log from kube-system accounts
+  - level: None
+    userGroups:
+    - system:serviceaccounts:kube-system
+    - system:serviceaccounts:openshift-infra
+    - system:serviceaccounts:kube-service-catalog
+    - system:serviceaccounts:openshift-template-service-broker
+    - system:serviceaccounts:openshift-sdn
+    - system:serviceaccounts:openshift-node
+    - system:serviceaccounts:openshift-ansible-service-broker
+  - level: None
+    users:
+    - system:apiserver
+    - system:kube-scheduler
+    - system:volume-scheduler
+    - system:kube-controller-manager
+    - system:node
+    - system:openshift-master
+
+  # Do not log from collector
+  - level: None
+    users:
+    - system:serviceaccount:collectorforopenshift:collectorforopenshift
+
+  # Don't log nodes communications
+  - level: None
+    userGroups:
+    - system:nodes
+
+  # Don't log these read-only URLs.
+  - level: None
+    nonResourceURLs:
+    - /healthz*
+    - /version
+    - /swagger*
+
+  # Log configmap and secret changes in all namespaces at the metadata level.
+  - level: Metadata
+    resources:
+    - resources: ["secrets", "configmaps"]
+
+  # A catch-all rule to log all other requests at the request level.
+  - level: Request
+============================================== OR use below ================================
+apiVersion: audit.k8s.io/v1beta1
+kind: Policy
+rules:
+
+  # Do not log watch requests by the "system:kube-proxy" on endpoints or services
+  - level: None 
+    users: ["system:kube-proxy"] 
+    verbs: ["watch"] 
+    resources: 
+    - group: ""
+      resources: ["endpoints", "services"]
+
+  # Do not log authenticated requests to certain non-resource URL paths.
+  - level: None
+    userGroups: ["system:authenticated"] 
+    nonResourceURLs: 
+    - "/api*" # Wildcard matching.
+    - "/version"
+
+  # Log the request body of configmap changes in kube-system.
+  - level: Request
+    resources:
+    - group: "" # core API group
+      resources: ["configmaps"]
+    # This rule only applies to resources in the "kube-system" namespace.
+    # The empty string "" can be used to select non-namespaced resources.
+    namespaces: ["kube-system"] 
+
+  # Log configmap and secret changes in all other namespaces at the metadata level.
+  - level: Metadata
+    resources:
+    - group: "" # core API group
+      resources: ["secrets", "configmaps"]
+
+  # Log all other resources in core and extensions at the request level.
+  - level: Request
+    resources:
+    - group: "" # core API group
+    - group: "extensions" # Version of group should NOT be included.
+
+  # A catch-all rule to log all other requests at the Metadata level.
+  - level: Metadata 
+
+  # Log login failures from the web console or CLI. Review the logs and refine your policies.
+  - level: Metadata
+    nonResourceURLs:
+    - /login* 
+    - /oauth* 
+=================================================================
+
+
+3) master-restart api
+   master-restart controllers
+
+4) https://docs.openshift.com/container-platform/3.11/install_config/aggregate_logging.html#aggregated-fluentd
