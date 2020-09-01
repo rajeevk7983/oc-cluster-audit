@@ -1,0 +1,16 @@
+root@ubuntu-oc-master:/etc# ansible-playbook myplaybook.yaml_orig -i /etc/ansible/hosts^C
+root@ubuntu-oc-master:/etc# more myplaybook.yaml_orig
+---
+
+- name: rsyslogconf update
+  gather_facts: false
+  hosts: all
+  tasks:
+
+    - name: rsyslogconf update
+      shell: sh /etc/somescript.sh
+root@ubuntu-oc-master:/etc# cat /etc/somescript.sh
+echo "## CMI Model Syslog Forwarding" >> /etc/rsyslog.conf
+echo "*.* @10.173.249.9:514" >> /etc/rsyslog.conf
+service rsyslog restart
+root@ubuntu-oc-master:/etc#
