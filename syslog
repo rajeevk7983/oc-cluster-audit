@@ -74,3 +74,5 @@ Raw
 Mar 03 10:52:20 master0 systemd[1]: Starting System Logging Service...
 Mar 03 10:52:20 master0 rsyslogd[109760]:  [origin software="rsyslogd" swVersion="8.24.0-41.el7_7.2" x-pid="109760" x-info="http://www.rsyslog.com"] start
 Mar 03 10:52:20 master0 systemd[1]: Started System Logging Service
+
+https://casesup.com/category/knowledgebase/howtos/how-to-forward-specific-log-file-to-a-remote-syslog-server
