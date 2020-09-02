@@ -76,3 +76,4 @@ Mar 03 10:52:20 master0 rsyslogd[109760]:  [origin software="rsyslogd" swVersion
 Mar 03 10:52:20 master0 systemd[1]: Started System Logging Service
 
 https://casesup.com/category/knowledgebase/howtos/how-to-forward-specific-log-file-to-a-remote-syslog-server
+https://access.redhat.com/solutions/4922161
