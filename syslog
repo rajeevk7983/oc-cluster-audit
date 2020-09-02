@@ -1,0 +1,10 @@
+$ModLoad imfile
+$InputFilePollInterval 10
+$PrivDropToGroup adm
+$InputFileName /appdata/app.log
+$InputFileTag APP
+$InputFileStateFile Stat-APP
+$InputFileSeverity app
+$InputFileFacility local7
+$InputRunFileMonitor
+$InputFilePersistStateInterval 1000
