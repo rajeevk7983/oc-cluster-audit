@@ -8,3 +8,69 @@ $InputFileSeverity app
 $InputFileFacility local7
 $InputRunFileMonitor
 $InputFilePersistStateInterval 1000
+============================================
+Raw
+$ModLoad imfile
+$InputFilePollInterval 10
+$InputFileName /var/lib/origin/audit-logs/audit.log
+$InputFileTag siem-audit
+$InputFileStateFile stat-siem-audit
+$InputFileSeverity Info
+$InputFileFacility local13
+$InputRunFileMonitor
+$InputFilePersistStateInterval 1000
+$template siem_audit, "  %msg% "
+if $programname == 'siem-audit' then @@10.10.10.10:6514;siem_audit
+if $programname == 'siem-sudit' then stop
+Furthermore, it is necessary to ensure that SELinux does not block rsyslog from accessing the audit logs:
+
+Raw
+# semanage fcontext -a -t var_log_t '/var/lib/origin/audit-logs/audit(./*)?'
+# restorecon -v /var/lib/origin/audit-logs
+# ls -ldZ /var/lib/origin/audit-logs
+  drwxr-xr-x. root root system_u:object_r:var_log_t:s0   /var/lib/origin/audit-logs/
+# ls -ldZ /var/lib/origin/audit-logs/*
+  -rwxr-xr-x. root root system_u:object_r:var_log_t:s0   /var/lib/origin/audit-logs/audit.log
+
+# cat example_module.te
+module example_module 1.0;
+
+require {
+    type syslogd_t;
+    type container_file_t;
+    class dir { getattr search };
+}
+
+allow syslogd_t container_file_t:dir { getattr search };
+
+# checkmodule -M -m -o example_module.mod example_module.te
+checkmodule:  loading policy configuration from example_module.te
+checkmodule:  policy configuration loaded
+checkmodule:  writing binary representation (version 19) to example_module.mod
+
+# semodule_package -o example_module.pp -m example_module.mod
+
+# semodule -i example_module.pp
+
+# semodule -l | grep example_module
+
+example_module.te   1.0
+Finally, restart the rsyslog daemon
+
+Raw
+# systemctl restart rsyslog
+
+# systemctl status rsyslog -l
+● rsyslog.service - System Logging Service
+   Loaded: loaded (/usr/lib/systemd/system/rsyslog.service; enabled; vendor preset: enabled)
+   Active: active (running) since Tue 2020-03-03 10:52:20 EST; 6s ago
+     Docs: man:rsyslogd(8)
+           http://www.rsyslog.com/doc/
+ Main PID: 109760 (rsyslogd)
+   Memory: 916.0K
+   CGroup: /system.slice/rsyslog.service
+           └─109760 /usr/sbin/rsyslogd -n
+
+Mar 03 10:52:20 master0 systemd[1]: Starting System Logging Service...
+Mar 03 10:52:20 master0 rsyslogd[109760]:  [origin software="rsyslogd" swVersion="8.24.0-41.el7_7.2" x-pid="109760" x-info="http://www.rsyslog.com"] start
+Mar 03 10:52:20 master0 systemd[1]: Started System Logging Service
