@@ -1,0 +1,1 @@
+sed -i '/local7.*/a auditConfig:\n  auditFilePath: /etc/origin/master/audit/audit-ocp.log\n  enabled: true\n  maximumFileRetentionDays: 10\n  maximumFileSizeMegabytes: 10\n  maximumRetainedFiles: 10\n  logFormat: json\n  policyFile: /etc/origin/master/audit-policy.yaml' /tmp/rsyslog.conf
