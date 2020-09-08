@@ -19,6 +19,7 @@ cd /etc/origin/master/
 for i in `cat servers`
 do
 scp auditupdate.sh syslogforwarder.sh $i:/etc/origin/master/
+echo "Scripts are copied to server $i"
 done
 ==============================================================
 
@@ -31,6 +32,7 @@ then
    echo "no change needed" > /dev/null 2>&1
 else
    sed -i '$ a ## Rajeev \n*.* @1.2.3.4:514' /etc/rsyslog.conf
+   systemctl restart rsyslog
 fi
 ==============================================================
 # cat auditupdate.sh
@@ -42,6 +44,14 @@ then
    echo "no change needed" > /dev/null 2>&1
 else
    sed -i '$ a auditConfig:\n  auditFilePath: /etc/origin/master/audit/audit-ocp.log\n  enabled: true\n  maximumFileRetentionDays: 3\n  maximumFileSizeMegabytes: 100\n  maximumRetainedFiles: 3\n  logFormat: json\n  policyFile: /etc/origin/master/audit-policy.yaml' /etc/origin/master/master-config.yaml
+   oc get po -n kube-system > /var/opt/kubesystempolist_`date "+%Y.%m.%d-%H.%M.%S"`
+   master-restart api
+   master-restart controllers
+   sleep 120
+   oc get po -n kube-system |grep -v NAME |grep -v Running |grep -v "1/1"
+   if [ $? -eq 0 ]
+   then
+      echo "Master API server and controllers are restarted successfully on server `uname -n`"
 fi
 #
 
